@@ -1,6 +1,14 @@
 import express from "express";
-import { handleAddUser, handleGetAllUsers } from "./userController";
+import {
+  handleRegisterUser,
+  handleGetAllUsers,
+  handleLogin,
+  handleGetSingleUser,
+} from "./userController";
+import userAuth from "../../middlewares/authMiddleware";
 const userRouter = express.Router();
-userRouter.post("/", handleGetAllUsers);
-userRouter.post("/adduser", handleAddUser);
+userRouter.get("/", userAuth, handleGetAllUsers);
+userRouter.get("/getSingleUser/:id", handleGetSingleUser);
+userRouter.post("/register", handleRegisterUser);
+userRouter.post("/login", handleLogin);
 export default userRouter;

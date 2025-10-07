@@ -24,6 +24,7 @@ export default function RootLayout({
     <QueryClientProvider client={queryClient}>
       <html lang="en">
         <body
+          suppressHydrationWarning
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           {children}
