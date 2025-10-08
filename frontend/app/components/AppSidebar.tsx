@@ -1,22 +1,17 @@
 "use client";
-import { Button, Menu, Select, theme } from "antd";
+import { Button, Select, theme } from "antd";
 import Sider from "antd/es/layout/Sider";
 import React, { useState } from "react";
 import {
-  AppstoreOutlined,
-  DashboardOutlined,
   DoubleLeftOutlined,
   DoubleRightOutlined,
   LogoutOutlined,
   MonitorOutlined,
-  ProjectOutlined,
-  UserOutlined,
 } from "@ant-design/icons";
 import { axiosInstance } from "../utils/axiosInstance";
-import baseUrl from "../utils/api";
 import { useQuery } from "@tanstack/react-query";
-import getCurrentUser from "../utils/currentUser";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
 interface TOptions {
   label: string;
@@ -50,8 +45,9 @@ const AppSidebar = () => {
   //     label: "Projects",
   //   },
   // ];
-  const handleLogout = async () => {
-    throw new Error("Function not implemented.");
+  const handleLogout = () => {
+    Cookies.remove("token");
+    router.push("/login");
   };
 
   const fetcher = async () => {

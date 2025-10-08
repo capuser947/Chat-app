@@ -7,7 +7,6 @@ import {
 } from "../User/userService";
 const handleGetAllUsers = async (req: any, res: any) => {
   try {
-    console.log("User from token", req.user);
     const result = await getAllUsers();
     return res.status(200).send({
       data: result,

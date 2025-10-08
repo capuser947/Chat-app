@@ -1,8 +1,13 @@
 import express from "express";
-import { handleGetAllChats } from "./ChatController";
+import {
+  handleAddChat,
+  handleAddMessages,
+  handleGetAllChats,
+} from "./ChatController";
 const chatRouter = express.Router();
 
 chatRouter.post("/", handleGetAllChats);
-chatRouter.post("/addchat", handleGetAllChats);
+chatRouter.post("/addchat", handleAddChat);
+chatRouter.post("/addmessages", handleAddMessages);
 
 export default chatRouter;
