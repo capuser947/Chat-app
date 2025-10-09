@@ -12,69 +12,76 @@ const SocketConnector = (server: any) => {
   });
 
   io.on("connection", (socket) => {
-    console.log("A new user just connected with id : ", socket.id);
     socket.on("disconnect", () => {
       console.log(socket.id, "id DISCONNECTED..");
     });
 
     socket.on("join-room", (to_join) => {
       socket.join(to_join);
-      console.log(socket.id, `joined to room ${to_join}`);
     });
     socket.on("private-message", (message) => {
-      console.log("Message Received : ", message);
+      if (message.from == message.to[0]) {
+        io.to(message.from).emit("private-message", message);
+      }
       io.to(message.to[0]).emit("private-message", message);
       socket.emit("private-message", message);
     });
   });
 };
-const a: any = [];
+
 const addChat = async (chat: any) => {
   try {
-    console.log("I am inside chat", chat);
+    const uniqueParticipants = [...new Set([chat.from, chat.to])];
 
     const existingChat = await Chat.findOne({
       isGroupChat: false,
       participants: {
-        $all: [chat.from, chat.to],
+        $all: uniqueParticipants.map((id) => new mongoose.Types.ObjectId(id)),
+        $size: uniqueParticipants.length,
       },
     })
-      .populate("participants")
+      .populate("participants", "name email")
       .populate("messages");
-    console.log("EXISTINGCHAT", existingChat);
 
     if (!existingChat) {
       const res = await Chat.insertOne({
         isGroupChat: false,
-        participants: [chat.from, chat.to],
+        participants: chat.from == chat.to ? [chat.from] : [chat.from, chat.to],
         messages: [],
       });
       const result = await Chat.findOne({ _id: res._id })
-        .populate("participants")
+        .populate("participants", "name email")
         .populate("messages");
       return result;
     } else {
-      console.log("EXISTINGCHAT", existingChat);
       return existingChat;
     }
   } catch (error: any) {
-    console.log(error.message);
     throw new Error(error.message);
   }
 };
 
-const addMessagesToChat = async (id: string, message: string) => {
-  console.log("I am called");
+const addMessagesToChat = async (chatId: string, message: string) => {
   try {
     const res = await Message.insertOne(message);
-    await Chat.findByIdAndUpdate(
-      id,
-      { $addToSet: { participants: id } },
+    const updated = await Chat.findByIdAndUpdate(
+      chatId,
+      { $addToSet: { messages: res._id } },
       { new: true }
     );
+    return res;
   } catch (error: any) {
     console.log(error.message);
     throw new Error(error.message);
   }
 };
-export { SocketConnector, addChat, addMessagesToChat };
+const getAllChatsOfSingleUser = async (userId: string) => {
+  console.log("USERID", userId);
+  try {
+    const myChats = await Chat.find({
+      participants: { $in: [userId] },
+    }).populate("participants", "name email");
+    return myChats;
+  } catch (error) {}
+};
+export { SocketConnector, addChat, addMessagesToChat, getAllChatsOfSingleUser };

@@ -1,42 +1,52 @@
 "use client";
 import { axiosInstance } from "@/app/utils/axiosInstance";
 import getCurrentUser from "@/app/utils/currentUser";
-import { getSocket } from "@/app/utils/socket";
 import { Message } from "@chatscope/chat-ui-kit-react";
 import { useMutation, useQuery, QueryClient } from "@tanstack/react-query";
 import { Button, Card, Form, Input, Spin } from "antd";
 import { useParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
+import { io, Socket } from "socket.io-client";
 
 interface TMessage {
+  _id: string;
   from: string;
   to: string[];
   text: string;
 }
-
+let socket: Socket;
 const page = () => {
+  const lastDivRef = useRef<HTMLDivElement>(null);
   const [allMessages, setAllMessages] = useState<TMessage[]>([]);
   const currentUser: any = getCurrentUser();
   console.log(currentUser, "CURRRRRRRR");
   const params = useParams();
   const toId = String(params.id);
+  console.log(currentUser?._id, toId);
   const [form] = Form.useForm();
-  const socket = getSocket();
   const createOrAddPrivateChat = async () => {
-    console.log("Damn bro");
     const chat = {
       isGroupChat: false,
       from: currentUser._id,
       to: toId,
     };
+    console.log("Damn bro", chat.from, chat.to);
     const res = await axiosInstance.post(`chat/addchat`, chat);
+    console.log("YE LEEEEE data : ", res?.data?.data);
     return res.data.data;
   };
+
   useEffect(() => {
-    socket.on("connect", () => {
-      socket.emit("join-room", `${currentUser?._id}`);
-    });
+    lastDivRef.current?.scrollIntoView();
+  });
+  useEffect(() => {
+    if (currentUser._id) {
+      socket = io("http://localhost:9000");
+      socket.on("connect", () => {
+        socket.emit("join-room", `${currentUser?._id}`);
+      });
+    }
 
     socket.on("private-message", (message) => {
       console.log("message", message);
@@ -47,17 +57,18 @@ const page = () => {
       socket.off("connect");
       socket.disconnect();
     };
-  }, []);
+  }, [currentUser._id]);
 
   const sendMessageHandler = async (values: any) => {
     console.log(currentUser);
     const message = {
       from: currentUser?._id,
       to: [toId],
-      text: values.message,
+      text: values?.message.trim(),
     };
+    console.log("MESSAGEMESSAGE", message);
     socket.emit("private-message", { ...message });
-    await addMessagesToDB(message);
+    await mutatemessage.mutateAsync(message);
   };
 
   const toUserFetcher = async () => {
@@ -74,12 +85,10 @@ const page = () => {
     return res.data.data;
   };
 
-  const queryClient = new QueryClient();
-
   const mutatemessage = useMutation({
     mutationFn: addMessagesToDB,
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["chat"] });
+      console.log("Message added");
     },
   });
 
@@ -101,14 +110,23 @@ const page = () => {
     queryKey: ["chat"],
   });
   console.log("ABEOYEEE CHAT AYA", chat);
+  // const setMessages = () => {
+  //   setAllMessages(chat?.messages);
+  // };
+  // setMessages();
+  useEffect(() => {
+    if (chat?.messages) setAllMessages(chat?.messages);
+  }, [isChatLoading, chat?._id]);
+
   if (isToUserLoading || isChatLoading) return <Spin />;
+
   return (
-    <Card className="!m-2 w-full relative">
-      <div className="relative top-0 bg-gray-900 text-2xl text-white text-center">
-        {toUser.name}
+    <div className="w-screen h-screen flex flex-col justify-around m-2 ">
+      <div className="fixed top-2 bg-gray-900 text-2xl text-white text-center">
+        <div className="m-auto">{toUser?.name}</div>
       </div>
-      <div>
-        {allMessages.map((message) => (
+      <div className=" overflow-y-auto block">
+        {allMessages?.map((message) => (
           <Message
             model={{
               direction:
@@ -123,9 +141,10 @@ const page = () => {
             }}
           />
         ))}
+        <div ref={lastDivRef}></div>
       </div>
       <Form
-        className="flex gap-2 absolute bottom-0 right-2 left-2 m-2"
+        className="flex bg-white gap-2 fixed bottom-0 right-2 left-70 m-2"
         form={form}
         onFinish={(values) => sendMessageHandler(values)}
       >
@@ -138,7 +157,7 @@ const page = () => {
           </Button>
         </Form.Item>
       </Form>
-    </Card>
+    </div>
   );
 };
 

@@ -1,6 +1,7 @@
 import axios from "axios";
 import baseUrl from "./api";
 import Cookies from "js-cookie";
+import Router from "next/router";
 
 const axiosInstance = axios.create({ baseURL: baseUrl });
 axiosInstance.interceptors.request.use(
@@ -10,7 +11,10 @@ axiosInstance.interceptors.request.use(
     return config;
   },
   (error) => {
-    return Promise.reject(error);
+    return Promise.reject(() => {
+      console.log(error);
+      Router.push("/login");
+    });
   }
 );
 export { axiosInstance };

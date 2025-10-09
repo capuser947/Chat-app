@@ -1,5 +1,9 @@
 import { Chat } from "./chatModel";
-import { addChat, addMessagesToChat } from "./chatService";
+import {
+  addChat,
+  addMessagesToChat,
+  getAllChatsOfSingleUser,
+} from "./chatService";
 
 const handleGetAllChats = async (_: any, res: any) => {
   const chats = await Chat.find();
@@ -24,9 +28,26 @@ const handleAddChat = async (req: any, res: any) => {
 };
 const handleAddMessages = async (req: any, res: any) => {
   try {
-    const id = req.params;
+    const params = req.params;
     const message = req.body;
-    const result = await addMessagesToChat(id, message);
+    const result = await addMessagesToChat(params.chatId, message);
+    return res.send({
+      success: true,
+      data: result,
+    });
+  } catch (error: any) {
+    return res.send({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+const handleGetAllChatsForSingleUser = async (req: any, res: any) => {
+  try {
+    const params = req.params;
+    console.log("params", params);
+    const userId = params.userId;
+    const result = await getAllChatsOfSingleUser(userId);
     return res.send({
       success: true,
       data: result,
@@ -39,4 +60,9 @@ const handleAddMessages = async (req: any, res: any) => {
   }
 };
 
-export { handleGetAllChats, handleAddChat, handleAddMessages };
+export {
+  handleGetAllChats,
+  handleAddChat,
+  handleAddMessages,
+  handleGetAllChatsForSingleUser,
+};

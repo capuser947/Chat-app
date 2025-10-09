@@ -22,7 +22,6 @@ const handleGetAllUsers = async (req: any, res: any) => {
 };
 const handleRegisterUser = async (req: any, res: any) => {
   try {
-    console.log("It reached the collection");
     const user = req.body;
     const result = await registerUser(user);
     return res.status(200).send({

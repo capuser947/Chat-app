@@ -31,7 +31,6 @@ const page = () => {
     setIsLoading(true);
     const res = await axiosInstance.post("/user/login", values);
     if (res.data.success) {
-      console.log("200 agaya oye");
       const { token } = res.data;
       Cookies.set("token", token);
       router.push("/overview");
@@ -85,9 +84,7 @@ const page = () => {
           <div className="text-center mb-8 lg:hidden">
             <div className="flex items-center justify-center gap-2 mb-4">
               <Activity className="h-8 w-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">
-                Uptime Monitor
-              </h1>
+              <h1 className="text-3xl font-bold text-gray-900">Chat.IO</h1>
             </div>
             <p className="text-gray-600">
               Professional website monitoring platform
@@ -157,8 +154,7 @@ const page = () => {
               </a>
             </div>
             <p>
-              &copy; {currentYear.toDateString()} Uptime Monitor. All rights
-              reserved.
+              &copy; {currentYear.toDateString()} Chat.IO. All rights reserved.
             </p>
           </div>
         </div>

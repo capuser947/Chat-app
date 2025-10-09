@@ -1,7 +1,7 @@
 "use client";
-import { Button, Select, theme } from "antd";
+import { Button, Menu, Select, theme } from "antd";
 import Sider from "antd/es/layout/Sider";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   DoubleLeftOutlined,
   DoubleRightOutlined,
@@ -10,8 +10,10 @@ import {
 } from "@ant-design/icons";
 import { axiosInstance } from "../utils/axiosInstance";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
+import getCurrentUser from "../utils/currentUser";
+import { MessageCircleHeartIcon } from "lucide-react";
 
 interface TOptions {
   label: string;
@@ -24,10 +26,17 @@ interface ChatOptions {
 
 const AppSidebar = () => {
   const router = useRouter();
+  const currentPath = usePathname();
+  const [selectedTab, setSelectedTab] = useState<string>();
+  console.log("VURRENTPATHVURRENTPATHVURRENTPATHVURRENTPATH", currentPath);
+  const [tabsList, setTabsList] = useState<
+    { key: string; icon: any; label: any }[] | null
+  >(null);
   const {
     token: { colorBgContainer },
   } = theme.useToken();
   const [collapsed, setCollapsed] = useState<boolean>();
+  const currentUser: any = getCurrentUser();
   // const TabsList = [
   //   {
   //     key: "/overview",
@@ -55,12 +64,22 @@ const AppSidebar = () => {
     const res = await axiosInstance.get(`/user`);
     return res.data.data;
   };
+  const chatFetcher = async () => {
+    console.log("I am inside Chat fetcher function");
+    const res = await axiosInstance.get(`/chat/getchats/${currentUser?._id}`);
+    return res.data.data;
+  };
 
   const { data, isLoading } = useQuery({
     queryFn: fetcher,
     queryKey: ["users"],
   });
   console.log(data, "datadata");
+
+  const { data: chats, isLoading: isChatsLoading } = useQuery({
+    queryFn: chatFetcher,
+    queryKey: ["chats"],
+  });
 
   const usersList = (data: any) => {
     let options: TOptions[] = [];
@@ -75,10 +94,27 @@ const AppSidebar = () => {
   ) => {
     if (chatType == "private") {
       router.push(`/chat/${id}`);
+      setSelectedTab(`chat/${id}`);
     }
   };
+  useEffect(() => {
+    if (currentUser?._id) {
+      let tabsMenu: { key: string; icon: any; label: any }[] = [];
+      chats?.map((chat: any) => {
+        let toParticipantArray = chat.participants.filter(
+          (x: string) => x != currentUser?._id
+        );
+        tabsMenu.push({
+          key: `chat/${toParticipantArray[0]._id}`,
+          icon: <MessageCircleHeartIcon></MessageCircleHeartIcon>,
+          label: toParticipantArray[0].name,
+        });
+      });
+      setTabsList(tabsMenu);
+    }
+  }, [chats, currentUser._id, currentPath]);
 
-  if (isLoading) return <>Loading ...</>;
+  if (isLoading || isChatsLoading) return;
 
   return (
     <Sider
@@ -124,29 +160,29 @@ const AppSidebar = () => {
           options={usersList(data)}
           placeholder="Select a person"
           onChange={(value: string) => {
-            console.log("IAMGOING");
+            console.log("IAMGOING", value);
             handleCreateAndNavigateToChatPage(value, "private");
           }}
         />
       </div>
-      {/* <div className="h-full flex-col justify-around space-x-8">
+      <div className="h-full flex-col justify-around space-x-8">
         <Menu
           theme="light"
           mode="inline"
           // selectedKeys={selectedKeys}
-          items={TabsList}
+          items={tabsList ?? []}
           // onClick={handleMenuClick}
           className="!px-2 !pt-1 !text-base custom-sidebar-menu !border-0"
         />
-        <Menu
+        {/* <Menu
           theme="light"
           mode="inline"
           // selectedKeys={selectedKeys}
-          items={TabsList}
+          items={tabsList ?? []}
           // onClick={handleMenuClick}
           className="!px-2 !pt-1 !text-base custom-sidebar-menu !border-0"
-        />
-      </div> */}
+        /> */}
+      </div>
 
       <div className="absolute text-center bottom-0 left-0 right-0 p-4 border-t">
         <Button
