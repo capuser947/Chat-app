@@ -1,14 +1,26 @@
 import jwt from "jsonwebtoken";
 import Cookies from "js-cookie";
 const getCurrentUser = () => {
-  const token = Cookies.get("token");
+  try {
+    const token = Cookies.get("token");
 
-  if (!token) {
-    console.log("No token found");
+    if (!token) {
+      console.log("No token found");
+      return;
+    } else {
+      const decoded = jwt.decode(token) as {
+        _id: string;
+        name: string;
+        email: string;
+      };
+      console.log(
+        "decodeddecodeddecodeddecodeddecodeddecodeddecodeddecoded",
+        decoded
+      );
+      return decoded;
+    }
+  } catch (error) {
     return;
-  } else {
-    const decoded = jwt.decode(token);
-    return decoded;
   }
 };
 export default getCurrentUser;

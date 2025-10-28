@@ -8,12 +8,17 @@ import { useParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import { io, Socket } from "socket.io-client";
+import { LexicalEditorr } from "../../../components/LexicalEditorComponent";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { $getRoot } from "lexical";
+import AllMessagesRenderer from "@/app/components/AllMessagesRenderer";
 
-interface TMessage {
+export interface TMessage {
   _id: string;
   from: string;
   to: string[];
   text: string;
+  encryptedMessage: [];
 }
 let socket: Socket;
 const page = () => {
@@ -23,7 +28,7 @@ const page = () => {
   console.log(currentUser, "CURRRRRRRR");
   const params = useParams();
   const toId = String(params.id);
-  console.log(currentUser?._id, toId);
+  console.log("BOTH", currentUser?._id, toId);
   const [form] = Form.useForm();
   const createOrAddPrivateChat = async () => {
     const chat = {
@@ -57,18 +62,21 @@ const page = () => {
       socket.off("connect");
       socket.disconnect();
     };
-  }, [currentUser._id]);
+  }, []);
 
   const sendMessageHandler = async (values: any) => {
+    console.log(values, "messagemessagemessage");
     console.log(currentUser);
     const message = {
       from: currentUser?._id,
       to: [toId],
-      text: values?.message.trim(),
+      text: values.root.children[0].children[0].text.trim(),
+      encryptedMessage: values,
     };
     console.log("MESSAGEMESSAGE", message);
     socket.emit("private-message", { ...message });
     await mutatemessage.mutateAsync(message);
+    form.resetFields();
   };
 
   const toUserFetcher = async () => {
@@ -107,7 +115,8 @@ const page = () => {
     error: chatError,
   } = useQuery({
     queryFn: createOrAddPrivateChat,
-    queryKey: ["chat"],
+    queryKey: ["chat", currentUser?._id, toId], // 👈 dynamic key
+    enabled: !!currentUser?._id && !!toId, // 👈 ensures user data is loaded
   });
   console.log("ABEOYEEE CHAT AYA", chat);
   // const setMessages = () => {
@@ -121,42 +130,21 @@ const page = () => {
   if (isToUserLoading || isChatLoading) return <Spin />;
 
   return (
-    <div className="w-screen h-screen flex flex-col justify-around m-2 ">
-      <div className="fixed top-2 bg-gray-900 text-2xl text-white text-center">
-        <div className="m-auto">{toUser?.name}</div>
+    <div className="flex flex-col justify-between p-2 h-screen bg-gray-50">
+      <div className="text-2xl text-black bg-green-200 text-center ">
+        {toUser?.name}
       </div>
-      <div className=" overflow-y-auto block">
+      <div className="flex-1 overflow-y-scroll p-20">
         {allMessages?.map((message) => (
-          <Message
-            model={{
-              direction:
-                message.from === currentUser._id ? "outgoing" : "incoming",
-              position: "single",
-              message: message.text,
-              sender:
-                message.from === currentUser._id
-                  ? currentUser.name
-                  : toUser.name,
-              sentTime: new Date().toLocaleTimeString(),
-            }}
-          />
+          <div key={message._id + Math.random().toString()}>
+            <AllMessagesRenderer from={currentUser} to={toUser} message={message} />
+          </div>
         ))}
         <div ref={lastDivRef}></div>
       </div>
-      <Form
-        className="flex bg-white gap-2 fixed bottom-0 right-2 left-70 m-2"
-        form={form}
-        onFinish={(values) => sendMessageHandler(values)}
-      >
-        <Form.Item className="!w-full" name="message">
-          <Input.TextArea placeholder="Enter Your message"></Input.TextArea>
-        </Form.Item>
-        <Form.Item className="!w-10">
-          <Button type="primary" htmlType="submit">
-            Send
-          </Button>
-        </Form.Item>
-      </Form>
+      <div>
+        <LexicalEditorr sendMessageHandler={sendMessageHandler} />
+      </div>
     </div>
   );
 };

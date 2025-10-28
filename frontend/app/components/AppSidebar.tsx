@@ -25,6 +25,8 @@ interface ChatOptions {
 }
 
 const AppSidebar = () => {
+  const currentUser: any = getCurrentUser();
+  console.log("CURR", currentUser);
   const router = useRouter();
   const currentPath = usePathname();
   const [selectedTab, setSelectedTab] = useState<string>();
@@ -36,7 +38,6 @@ const AppSidebar = () => {
     token: { colorBgContainer },
   } = theme.useToken();
   const [collapsed, setCollapsed] = useState<boolean>();
-  const currentUser: any = getCurrentUser();
   // const TabsList = [
   //   {
   //     key: "/overview",
@@ -78,7 +79,7 @@ const AppSidebar = () => {
 
   const { data: chats, isLoading: isChatsLoading } = useQuery({
     queryFn: chatFetcher,
-    queryKey: ["chats"],
+    queryKey: ["chat"],
   });
 
   const usersList = (data: any) => {
@@ -87,6 +88,9 @@ const AppSidebar = () => {
       options.push({ label: user.name, value: user._id });
     });
     return options;
+  };
+  const handleMenuClick = ({ key }: { key: string }) => {
+    router.replace(`/${key}`);
   };
   const handleCreateAndNavigateToChatPage = async (
     id: string,
@@ -98,32 +102,44 @@ const AppSidebar = () => {
     }
   };
   useEffect(() => {
-    if (currentUser?._id) {
+    if (Array.isArray(chats) && currentUser?._id) {
       let tabsMenu: { key: string; icon: any; label: any }[] = [];
-      chats?.map((chat: any) => {
-        let toParticipantArray = chat.participants.filter(
-          (x: string) => x != currentUser?._id
-        );
-        tabsMenu.push({
-          key: `chat/${toParticipantArray[0]._id}`,
-          icon: <MessageCircleHeartIcon></MessageCircleHeartIcon>,
-          label: toParticipantArray[0].name,
+      console.log("currentUser", currentUser);
+      console.log("chats", chats);
+      chats.map((chat: any) => {
+        let toParticipantArray = chat?.participants.filter((x: any) => {
+          return x?._id != currentUser?._id;
         });
+        console.log("toParticipantArray", toParticipantArray);
+        if (toParticipantArray.length != 0) {
+          tabsMenu.push({
+            key: `chat/${toParticipantArray[0]._id}`,
+            icon: <MessageCircleHeartIcon></MessageCircleHeartIcon>,
+            label: toParticipantArray[0].name,
+          });
+        } else {
+          tabsMenu.push({
+            key: `chat/${currentUser._id}`,
+            icon: <MessageCircleHeartIcon></MessageCircleHeartIcon>,
+            label: currentUser.name,
+          });
+        }
       });
+      console.log("tabsMenu", tabsMenu);
       setTabsList(tabsMenu);
     }
-  }, [chats, currentUser._id, currentPath]);
-
+  }, [chats, currentPath]);
+  console.log("tabsList", tabsList);
   if (isLoading || isChatsLoading) return;
 
   return (
     <Sider
       collapsed={collapsed}
-      style={{ background: colorBgContainer }}
+      style={{ background: colorBgContainer, overflow: "hidden" }}
       width={250}
-      className="!border-r"
+      className="!border-r !overflow-hidden "
     >
-      <div className="p-4 border-b border-0 flex items-center justify-between relative ">
+      <div className="p-4 border-b border-0 flex items-center justify-between relative  ">
         {!collapsed && (
           <div className="flex items-center gap-2">
             <MonitorOutlined className="text-blue-600 text-xl" />
@@ -134,7 +150,7 @@ const AppSidebar = () => {
           <MonitorOutlined className="text-blue-600 text-xl mx-auto" />
         )}
         <Button
-          className="w-8 absolute left-7.75"
+          className="w-8 absolute left-7.75 !z-10000"
           type="text"
           onClick={() => {
             setCollapsed(!collapsed);
@@ -169,9 +185,9 @@ const AppSidebar = () => {
         <Menu
           theme="light"
           mode="inline"
-          // selectedKeys={selectedKeys}
+          selectedKeys={[selectedTab ?? ""]}
           items={tabsList ?? []}
-          // onClick={handleMenuClick}
+          onClick={handleMenuClick}
           className="!px-2 !pt-1 !text-base custom-sidebar-menu !border-0"
         />
         {/* <Menu

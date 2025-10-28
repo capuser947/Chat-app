@@ -36,7 +36,7 @@ const handleAddMessages = async (req: any, res: any) => {
       data: result,
     });
   } catch (error: any) {
-    return res.send({
+    return res.status(401).json({
       success: false,
       error: error.message,
     });

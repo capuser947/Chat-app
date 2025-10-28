@@ -6,12 +6,20 @@ import AppSidebar from "../components/AppSidebar";
 const queryClient = new QueryClient();
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
+  const { Content } = AntLayOut;
   return (
     <div>
       <QueryClientProvider client={queryClient}>
-        <AntLayOut style={{ minHeight: "100vh" }}>
+        <AntLayOut
+          style={{
+            height: "100vh",
+            width: "100vw",
+            padding: "20px",
+            display: "flex",
+          }}
+        >
           <AppSidebar />
-          {children}
+          <Content>{children}</Content>
         </AntLayOut>
       </QueryClientProvider>
     </div>

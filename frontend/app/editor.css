@@ -1,0 +1,81 @@
+.editor-text-bold {
+  font-weight: bold;
+}
+
+.editor-text-italic {
+  font-style: italic;
+}
+
+.editor-text-underline {
+  text-decoration: underline;
+}
+
+.editor-text-strikethrough {
+  text-decoration: line-through;
+}
+
+.editor-text-code {
+  font-family: monospace;
+  padding: 2px 4px;
+  border-radius: var(--ant-border-radius);
+  background: #c4c3c3;
+  color: var(--ant-color-text);
+}
+
+.editor-h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+.editor-list-ordered {
+  list-style-type: decimal !important;
+  margin-left: 1.5rem !important;
+  padding-left: 30px !important;
+  margin: 8px 0 !important;
+  text-align: left;
+}
+
+.editor-list-unordered {
+  list-style-type: disc !important;
+  margin-left: 1.5rem !important;
+  padding-left: 30px !important;
+  margin: 8px 0 !important;
+}
+
+.editor-list-item {
+  margin: 2px 0 !important;
+  padding-left: 15px !important;
+}
+
+/* Quotes */
+
+.editor-quote {
+  border-left: 3px solid #d0d0d0;
+  margin: 0.5rem 0;
+  padding-left: 1rem;
+  color: #555;
+  font-style: italic;
+}
+
+.editor-code {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre;
+
+  background-color: #3a3a3a;
+  color: #d4d4d4;
+  font-family: "Fira Code", "Consolas", "Liberation Mono", "Menlo", monospace;
+  font-size: 14px;
+  line-height: 1.6;
+
+  padding: 14px 16px;
+  margin: 16px 0;
+  border-radius: 8px;
+  border: 1px solid #333;
+
+  /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); */
+}
